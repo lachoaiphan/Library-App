@@ -43,7 +43,6 @@ body, html {
 .form-ctn-c {
     display: flex;
     flex-direction: column;
-    width: 100%;
 }
 
 .form-row-c {
@@ -60,6 +59,7 @@ body, html {
 .form-input {
     border-radius: 20px;
     font-size: 1.1em;
+    outline: none;
 }
 
 .header-title {

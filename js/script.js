@@ -1,6 +1,4 @@
 document.addEventListener('DOMContentLoaded', () => {
-    
-
     let library = []
     
     function Book(title, author, pages, read) {
@@ -8,32 +6,58 @@ document.addEventListener('DOMContentLoaded', () => {
         this.author = author,
         this.title = title,
         this.pages = pages,
-        this.read = read
+        this.read = read ? 'Yes' : 'No';
     }
 
-    Book.prototype.displayInfo = function () {
-        console.log(`${this.author} ${this.title} ${this.pages} ${this.read}`)
+    Book.prototype.setRead = function(read) {
+        this.read = read;
+    }
+
+    Book.prototype.getInfo = function() {
+        const bookProps = [
+            {propCnt: 'Author: ', propValue: this.author},
+            {propCnt: 'Title: ', propValue: this.title},
+            {propCnt: 'Pages: ', propValue: this.pages},
+            {propCnt: 'Read: ', propValue: this.read}
+        ]
+        let bookDes = document.createElement('div');
+        for (let i = 0; i < bookProps.length; i++) {
+            let p = document.createElement('p');
+            let strong = document.createElement('strong');
+
+            p.classList.add(classes[8]);
+
+            strong.textContent = bookProps[i].propCnt;
+            p.appendChild(strong);
+
+            p.innerHTML += bookProps[i].propValue;
+            bookDes.appendChild(p);
+        }
+        return bookDes;
+    }
+
+    Book.prototype.getRead = function() {
+        return this.read;
     }
 
     function addBookToLibrary(book) {
         library.push(book)    
     }
-    
-    let book1 = new Book('Harry Potter', 'J.K. Rowling', 200, false);
-    let book2 = new Book('World of Animals', 'J.K. Rowling', 200, false);
-    
-    addBookToLibrary(book1);
-    addBookToLibrary(book2);
 
-    for (let i = 0; i < library.length; i++) {
-        library[i].displayInfo();
+    function removeBook(index) {
+        library.splice(index, 1);
+        removeLibCnt();
+        renderCatalog();
     }
 
-    /*
-    Render Start Menu
-
-
-    */
+    function readBook(index) {
+        const readStat = library[index].getRead();
+        readStat === 'Yes' ? library[index].setRead('No') : 
+                             library[index].setRead('Yes');
+        
+        removeLibCnt();
+        renderCatalog();
+    }
 
     let mainFeature = document.querySelector('#main-ft');
 
@@ -42,11 +66,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const ids = ['start-menu', 'lib-feat', 'book-form'];
     const tags = ['input']
     const classes = ['t-btn', 'n-border', 'fl-c', 'form-ctn-c', 'align-left',
-                     'form-hdr', 'form-input']
-    const paddings = ['pb-15', 'p-8'];
+                     'form-hdr', 'form-input', 'cat-entry', 'cat-item', 'fade-in']
+    const paddings = ['pb-15', 'p-8', 'pl-5'];
     const margins = ['m-10', 'mb-10'];
     const types = ['text', 'number', 'checkbox', 'button'];
-    const attrs = ['for', 'type', 'name', 'placeholder', 'form'];
+    const attrs = ['for', 'type', 'name', 'placeholder', 'form', 'data-key'];
     const menuCnt = [
         {text: 'ADD BOOK', func: renderAddBook},
         {text: 'VIEW CATALOG', func: renderCatalog}
@@ -56,16 +80,21 @@ document.addEventListener('DOMContentLoaded', () => {
         {name: 'back', text: 'BACK', type: types[3], func: renderMenu}
     ]
     const bookFormInput = [
-        {name: 'title', text: 'Title', placeholder: 'Enter title here', type: types[0]},
-        {name: 'author', text: 'Author', placeholder: 'Enter author here', type: types[0]},
-        {name: 'pages', text: 'Number of pages', placeholder: 'Enter number of pages here', type: types[1]},
+        {name: 'title', text: 'Title', placeholder: 'Enter title', type: types[0]},
+        {name: 'author', text: 'Author', placeholder: 'Enter author', type: types[0]},
+        {name: 'pages', text: 'Number of pages', placeholder: 'Enter number of pages', type: types[1]},
         {name: 'read', text: 'Read the book?', placeholder: '', type: types[2]},
     ]
-    const entryCnt = ['REMOVE', 'READ', 'BACK'];
+    const catEntryCnt = [
+        {text: 'REMOVE', func: removeBook},
+        {text: 'READ', func: readBook},
+        {text: 'BACK', func: renderMenu}
+    ]
 
     function renderMenu() {
         let startMenu = document.createElement('div');
         startMenu.id = ids[0];
+        startMenu.classList.add(classes[9]);
         for (let i = 0; i < menuBtnNum; i++){
             let tBtn = document.createElement('button');
             tBtn.classList.add(classes[0], margins[0]);
@@ -73,8 +102,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Event Delegation to dynamically created elements
             tBtn.addEventListener('click', (e) => {
-                if (e.target && e.target.matches(`.${classes[0]}`))
+                if (e.target && e.target.matches(`.${classes[0]}`)) {
+                    removeLibCnt();
                     menuCnt[i].func();
+                }
             }, false)
             
             startMenu.appendChild(tBtn);
@@ -89,11 +120,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         libFeature.id = ids[1];
         form.id = ids[2];
+
+        libFeature.classList.add(classes[2], classes[9]);
         fieldset.classList.add(classes[1]);
 
         renderBookFormInput(form);
-
-        console.log(form);
         
         fieldset.appendChild(form);
         libFeature.appendChild(fieldset);
@@ -139,13 +170,16 @@ document.addEventListener('DOMContentLoaded', () => {
             btns[i].classList.add(classes[0], margins[0]);
 
             btns[i].textContent = bookFormCnt[i].text;
-            btns[i].setAttribute(types[3], bookFormCnt[i].type);
+            btns[i].setAttribute(attrs[1], bookFormCnt[i].type);
             if (bookFormCnt[i].name === ids[2])
-                btns[i].setAttribute(attrs[4], bookFormCnt.name);
+                btns[i].setAttribute(attrs[4], bookFormCnt[i].name);
             
             btns[i].addEventListener('click', (e) => {
-                if (e.target && e.target.matches(`.${classes[0]}`))
+                if (e.target && e.target.matches(`.${classes[0]}`)) {
+                    if (bookFormCnt[i].func.name === 'renderMenu')
+                        removeLibCnt();
                     bookFormCnt[i].func();
+                }
             }, false);
         }
         appendChildren(btnCtn, btns);
@@ -157,41 +191,93 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderCatalog() {
-        console.log('at catalog')
+        let catalog = document.createElement('div');
+        let backBtnCtn = document.createElement('div');
+        
+        catalog.classList.add(classes[2], classes[9]);
+        backBtnCtn.classList.add(classes[2], paddings[0]);
+
+        for (let i = 0; i < library.length; i++) {
+            let bookEntry = document.createElement('div');
+            let bookCnt = library[i].getInfo();
+            let bookBtns = renderCatBtns(i);
+
+            bookEntry.setAttribute(attrs[5], i + 1);
+            bookEntry.classList.add(classes[4], classes[7], paddings[2]);
+
+            appendChildren(bookEntry, [bookCnt, bookBtns]);
+            catalog.appendChild(bookEntry);
+        }
+        backBtnCtn.appendChild(renderBtn(catEntryCnt[catEntryCnt.length - 1]));
+        appendChildren(mainFeature, [catalog, backBtnCtn]);
+    }
+
+    function renderCatBtns(index) {
+        let btnCtn = document.createElement('div');
+        let btns = [];
+
+        for (let i = 0; i < menuBtnNum; i++) 
+            btns.push(document.createElement('button'));
+
+        btnCtn.classList.add(classes[2], paddings[0]);
+        for (let i = 0; i < catEntryCnt.length - 1; i++){
+            btns[i].classList.add(classes[0], margins[0]);
+            btns[i].textContent = catEntryCnt[i].text;
+
+            btns[i].addEventListener('click', (e) => {
+                if (e.target && e.target.matches(`.${classes[0]}`)) {
+                    catEntryCnt[i].func(index);
+                }
+            }, false);
+            btnCtn.appendChild(btns[i]);
+        }
+        return btnCtn;
+    }
+
+    function renderBtn(btnProps) {
+        let btn = document.createElement('button');
+        btn.classList.add(classes[0], margins[0]);
+        for (let key in btnProps) {
+            if (key === 'text') btn.textContent = btnProps[key];
+            else if (key === 'func')  
+                btn.addEventListener('click', (e) => {
+                if (e.target && e.target.matches(`.${classes[0]}`)) {
+                    if (btnProps.func.name === 'renderMenu')
+                        removeLibCnt();
+                    btnProps.func();
+                }
+                }, false);
+        }
+        return btn;
+    }
+
+    function removeLibCnt() {
+        while (mainFeature.lastChild.id !== 'header') 
+            mainFeature.removeChild(mainFeature.lastChild);
     }
 
     function submitBook() {
-        //console.log('submit book');
         let bkForm = Array.from(document.querySelectorAll(`#${ids[2]} ${tags[0]}`))
         if (bkForm.filter(input => input.value !== '').length < bookFormInput.length) 
             return;
         bkForm = bkForm.reduce((acc, input) => ({...acc, 
             [input.name]: input.type === types[2] ? 
                           input.checked : input.value}), {})
-        library.push(new Book(bkForm.title, bkForm.author, bkForm.pages, bkForm.read));
-        console.log(library)
+        addBookToLibrary(new Book(bkForm.title, bkForm.author, bkForm.pages, bkForm.read));
+        removeLibCnt();
+        renderMenu();
     }
 
-    //renderMenu();
-    renderAddBook();
+    // Initialize Test Cases
+    let book1 = new Book('Harry Potter', 'J.K. Rowling', 200, false);
+    let book2 = new Book('World of Animals', 'J.K. Rowling', 200, false);
     
+    addBookToLibrary(book1);
+    addBookToLibrary(book2);
 
-    /*
-    Form Feature
 
-    const bookFormNum = 4;
-    let library = [];
-    let submitBookBtn = document.querySelector('#submit-book');
-
-    submitBookBtn.addEventListener('click', () => {
-        const bkForm = Array.from(document.querySelectorAll('#book-form input'))
-        if (bkForm.filter(input => input.value !== '').length < bookFormNum) 
-            return;
-        library.push(bkForm.reduce((acc, input) => ({...acc, 
-            [input.name]: input.value}), {}
-        ))
-    })
-    */
+    // Initialize Menu
+    renderMenu();
 
     // FRONT-END
     // Establish simple layout of buttons, forms, and display books
